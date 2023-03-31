@@ -39,8 +39,9 @@ The domain decomp of this mesh with ~1700 nodes and equal node density shows the
 | <img src="/docu/images/limon_32.png" title="32 Domains" /> |  <img src="/docu/images/limon_64.png" title="64 Domains" /> |
 
 
+
 ### Northsea
-The northsea mesh with 312000 nodes has a strongly varying node density from one node per 400km² up to one node per five squaremeter. You can see the node dense in the following frist two images.
+The northsea mesh with 312000 nodes has a strongly varying node density from one node per 400km² up to one node per five square meter. You can see the node dense in the following frist two images.
 
 <table>
    <caption>Number of ghost nodes with increasing number of domains</caption>
@@ -76,3 +77,43 @@ The northsea mesh with 312000 nodes has a strongly varying node density from one
 
 
 ### Worms
+The worms mesh with 6.3M nodes  with varying node density from one node per 400 square meters in farming areas up to one node per square meter in urban areas. You can see the node dense in the following frist two images.
+
+<table>
+   <caption>Number of ghost nodes and run time with increasing number of domains</caption>
+<thead>
+	<tr>
+		<th rowspan="2">nDomains</th>
+		<th colspan="3">ghost nodes</th>
+    <th>run time</th>
+	</tr>
+  <tr>
+		<th>min</th>
+		<th>max</th>		
+    <th>mean</th>
+    <th>seconds</th>
+	</tr>
+</thead>
+<tbody>
+  <tr> <td>2</td>  <td>2824</td> <td>2862</td>  <td>2843</td>    <td>1.1</td> </tr>
+  <tr> <td>4</td>  <td>1800</td> <td>2640</td> <td>2334.25</td>  <td>1.1</td> </tr>
+  <tr> <td>8</td>  <td>1109</td> <td>3510</td> <td>2282.62</td>  <td>1.1</td> </tr>
+  <tr> <td>16</td> <td>1019</td> <td>2651</td>  <td>1760.75</td> <td>1.1</td> </tr>
+  <tr> <td>32</td> <td>900</td>  <td>2125</td>  <td>1446.62</td> <td>1.1</td> </tr>
+  <tr> <td>64</td> <td>520</td>  <td>2004</td>  <td>1060.14</td> <td>1.1</td> </tr>
+  <tr> <td>1024</td>  <td>151</td> <td>1057</td> <td>317.413</td> <td>1.2</td> </tr>
+  <tr> <td>8196</td>  <td>35</td>  <td>889</td>  <td>127.689</td> <td>1.6</td> </tr>
+  <tr> <td>32784</td> <td>11</td>  <td>533</td>  <td>70.4163</td> <td>2.1</td> </tr>
+  <tr> <td>65568</td> <td>8</td>   <td>373</td>  <td>52.2802</td> <td>2.6</td> </tr>
+</tbody >
+</table>
+
+Note: Only the time for the domain decomp count, no I/O. Speedtest was run on a 12 years old Intel i7-2640M CPU @ 2.80GHz with compiler optimization -O2.
+
+| Domain decomposition from 2 to 64 domains | |
+| ----------- | ----------- |
+| <img src="/docu/images/worms_nodes.png" title="Nodes" /> | <img src="/docu/images/worms_dense.png" title="Dense" /> |
+| <img src="/docu/images/worms_2.png" title="2 Domains" /> | <img src="/docu/images/worms_4.png" title="4 Domains" /> |
+| <img src="/docu/images/worms_8.png" title="8 Domains" /> | <img src="/docu/images/worms_16.png" title="16 Domains" /> |
+| <img src="/docu/images/worms_32.png" title="32 Domains" /> |  <img src="/docu/images/worms_64.png" title="64 Domains" /> |
+
