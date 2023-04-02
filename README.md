@@ -2,6 +2,8 @@
 
 
 ## The Idea
+The idea is to split the mesh into sqrt(nDomains) vertical stripes by sorting the nodes in X direction. Assign each node a vertical stripe. Sort the nodes in Y direction. Loop over nodes belong to the first vertical stripe and assigm as many nodes as need to the first domain. Then the second domain and so fort until no more nodes are left in the first vertical stripe. Then do the same for the next vertical stripe.
+The result are rectangle-like domains.
 
 ## Examples
 
