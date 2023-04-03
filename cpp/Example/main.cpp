@@ -13,8 +13,29 @@
 #include "writeMesh.hpp"
 #include "readMesh.hpp"
 
+/*
+ anzahl knoten = sum gewichte
 
-std::vector<int> doComainDecomp(const Mesh& mesh, int nDomains) {
+            approx   result
+  Input     Domain   Domain    Normierte
+  Gewichte  Knoten   Knoten    Gewichte
+  1 1 1 1   2 | 2    2 | 2    1 1 1 1
+  2 2 2 2   2 | 2    2 | 2    1 1 1 1
+  2 1 1 1   2 | 2    1 | 3    8/5 4/5 4/5 4/5 * 0.8
+  1.6 0.8 0.8 0.8
+
+ */
+
+std::vector<int> doDomainDecomp_nodeweight(const Mesh& mesh, int nDomains, const std::vector<float>& nodesWeight) {
+    if(not std::all_of(nodesWeight.begin(), nodesWeight.end(), [](float x){ return x > 0; })) {
+        std::cout << "All input weights must be > 0\n";
+        throw "Err";
+    }
+
+    float sumWeight = std::accumulate(nodesWeight.begin(), nodesWeight.end(), 0.0f);
+    float faktor = mesh.nodes.size() / sumWeight;
+    std::cout << "Sum " << sumWeight << " faktor " << faktor << "\n";
+
     // Store the information to which vertical stripe the node belongs
     struct NodeInfo {
         // Using float instead of double for the coordinate give a few % more performance in this case.
@@ -23,23 +44,26 @@ std::vector<int> doComainDecomp(const Mesh& mesh, int nDomains) {
         int vertiStripeID;
     };
 
-
+    const int approxNodesPerDomain = mesh.nodes.size()/nDomains;
     const int nVerticalStripes = std::floor(std::sqrt(nDomains));
     const int nHoristripes = std::ceil(1.0*nDomains/nVerticalStripes);
-    const int approxChunksize = mesh.nodes.size()/nDomains;
     const int vertiChunksize = mesh.nodes.size()/nVerticalStripes;
 
+
+    std::vector<int> nNodesPerDomain(nDomains, approxNodesPerDomain);
+
+    /// Mit Knotengewichten braucht man nicht den Rest aufteilen. Das führt dann dazu
+    /// dass die letzte Domian garkeine Knoten mehr bekommt.
+//    const int rest = mesh.nodes.size() - nDomains*approxNodesPerDomain;
+//    for(int i=0; i < rest; i++) {
+//        nNodesPerDomain[i]++;
+//    }
+
+    std::cout << "Split mesh into domains of chunksize approximately " << approxNodesPerDomain << "\n";
     std::cout << "Domain Decomp with " << nDomains << " threads\n";
-    std::cout << "Split mesh into domains of chunksize approximately " << approxChunksize << "\n";
     std::cout << nVerticalStripes << " vertical stripes " << vertiChunksize << " chunksize\n";
     std::cout << nHoristripes << " horizontal stripes\n";
 
-    std::vector<int> chunksizePerDomain(nDomains, approxChunksize);
-
-    const int rest = mesh.nodes.size() - nDomains*approxChunksize;
-    for(int i=0; i < rest; i++) {
-        chunksizePerDomain[i]++;
-    }
 
     std::vector<NodeInfo> nodeInfos;
     nodeInfos.reserve(mesh.nodes.size());
@@ -52,6 +76,7 @@ std::vector<int> doComainDecomp(const Mesh& mesh, int nDomains) {
     std::sort(nodeInfos.begin(), nodeInfos.end(), [](const NodeInfo& lhs, const NodeInfo& rhs){ return lhs.XorY < rhs.XorY; } );
 
     // Split the nodes into nVerticalStripes
+    // The asymptotic complexity of the two for loops is linear in number of nodes.
     size_t IP_sorted = 0;
     for(int vertistripeID=0; vertistripeID < nVerticalStripes; ++vertistripeID) {
         for(int i=0; i < vertiChunksize; ++i) {
@@ -74,27 +99,38 @@ std::vector<int> doComainDecomp(const Mesh& mesh, int nDomains) {
     std::vector<int> domainIDperNode(mesh.nodes.size(), -1);
 
     int nextDomainID = 0;
-    int count = 0;
+    float count = 0;
     for(int vertistripeID=0; vertistripeID < nVerticalStripes; ++vertistripeID) {
         // Stupid double loop... can be rewritten. But the running time is only a few sec for 5M nodes mesh..
         for(const NodeInfo& item : nodeInfos) {
             if(item.vertiStripeID == vertistripeID) {
-                domainIDperNode[item.IP] = nextDomainID;
-                count++;
 
-                if(count == chunksizePerDomain[nextDomainID]) {
+                //count++;
+                count += nodesWeight[item.IP] * faktor;
+
+                if(count >= nNodesPerDomain[nextDomainID]) {
                     count = 0;
 
                     if(nextDomainID < nDomains-1) {
                         nextDomainID++;
                     }
                 }
+
+                domainIDperNode[item.IP] = nextDomainID;
             }
         }
     }
 
     return domainIDperNode;
 }
+
+
+
+std::vector<int> doDomainDecomp(const Mesh& mesh, int nDomains) {
+    std::vector<float> nodesWeight(mesh.nodes.size(), 1.0);
+    return doDomainDecomp_nodeweight(mesh, nDomains, nodesWeight);
+}
+
 
 void printNodesPerDomain(const Mesh& mesh, int nDomains, const std::vector<int>& domainIDperNode) {
     const int approxChunksize = mesh.nodes.size()/nDomains;
@@ -158,8 +194,13 @@ int main(int argc, char* argv[]) {
     std::cout << "Mesh with " << mesh.nodes.size() << " nodes and " << mesh.elements.size() << " elements\n";
 
 
+    std::vector<float> nodesWeight(mesh.nodes.size());
+    for(int IP=0; IP < mesh.nodes.size(); ++IP) {
+        nodesWeight[IP] = mesh.nodes[IP].z > 12 ? 10 : 1;
+    }
+
     auto _start = std::chrono::steady_clock::now();
-    std::vector<int> domainIDperNode = doComainDecomp(mesh, nDomains);
+    std::vector<int> domainIDperNode = doDomainDecomp_nodeweight(mesh, nDomains, nodesWeight);
     auto end = std::chrono::steady_clock::now();
 
     printNodesPerDomain(mesh, nDomains, domainIDperNode);
