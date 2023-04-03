@@ -5,7 +5,7 @@
 The idea is to split the mesh into sqrt(nDomains) vertical stripes by sorting the nodes in X direction. Assign each node a vertical stripe. Sort the nodes in Y direction. Loop over nodes belong to the first vertical stripe and assigm as many nodes as need to the first domain. Then the second domain and so fort until no more nodes are left in the first vertical stripe. Then do the same for the next vertical stripe.
 The result are rectangle-like domains.
 
-## Examples
+## Examples with equal number of nodes per domain
 
 ### Limon
 The domain decomp of this mesh with ~1700 nodes and equal node density shows the basic idea of the rectangle domain decomp.
@@ -131,4 +131,17 @@ Note: Only the time for the domain decomp count, no I/O. Speedtest was run on a 
 | <img src="/docu/images/worms_2.png" title="2 Domains" /> | <img src="/docu/images/worms_4.png" title="4 Domains" /> |
 | <img src="/docu/images/worms_8.png" title="8 Domains" /> | <img src="/docu/images/worms_16.png" title="16 Domains" /> |
 | <img src="/docu/images/worms_32.png" title="32 Domains" /> |  <img src="/docu/images/worms_64.png" title="64 Domains" /> |
+
+
+
+## Examples with nnod weights
+
+### Limon
+To show the domain decomposition with node weights the mesh depth is used. For every node with a depth > 12 the weight is set to 10, otherwiese 1. The resulting weight is shown in the first image. Where blue is weight of 1 and green of 10.
+As you can see, on the left side of the mesh there are less domain.
+
+| Domain decomposition with node weights and 64 domains | |
+| ----------- | ----------- |
+| <img src="/docu/images/limon_depth_ab12.png" title="Weights" /> | <img src="/docu/images/limon_nodeweight_64.png" title="64 Domains" /> |
+
 
